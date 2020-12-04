@@ -63,7 +63,7 @@ namespace concurrencpp::tests {
             return std::this_thread::get_id() == m_setting_thread.get_id();
         }
 
-        void enqueue(std::experimental::coroutine_handle<> task) override {
+        void enqueue(std::coroutine_handle<> task) override {
             std::unique_lock<std::mutex> lock(m_lock);
             assert(!m_execution_thread.joinable());
             m_execution_thread = std::thread([task]() mutable {
@@ -72,7 +72,7 @@ namespace concurrencpp::tests {
             });
         }
 
-        void enqueue(std::span<std::experimental::coroutine_handle<>> span) override {
+        void enqueue(std::span<std::coroutine_handle<>> span) override {
             (void)span;
             std::abort();  // not neeeded.
         }
@@ -88,9 +88,9 @@ namespace concurrencpp::tests {
         }
 
         template<class type>
-        size_t set_rp_err(result_promise<type> rp) {
+        std::size_t set_rp_err(result_promise<type> rp) {
             random randomizer;
-            const auto id = static_cast<size_t>(randomizer());
+            const auto id = static_cast<std::size_t>(randomizer());
 
             std::unique_lock<std::mutex> lock(m_lock);
             assert(!m_setting_thread.joinable());
@@ -113,11 +113,11 @@ namespace concurrencpp::tests {
     struct throwing_executor : public concurrencpp::executor {
         throwing_executor() : executor("throwing_executor") {}
 
-        void enqueue(std::experimental::coroutine_handle<>) override {
+        void enqueue(std::coroutine_handle<>) override {
             throw executor_enqueue_exception();
         }
 
-        void enqueue(std::span<std::experimental::coroutine_handle<>>) override {
+        void enqueue(std::span<std::coroutine_handle<>>) override {
             throw executor_enqueue_exception();
         }
 

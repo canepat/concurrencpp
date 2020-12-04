@@ -12,7 +12,7 @@ void wait_context::wait() noexcept {
     });
 }
 
-bool wait_context::wait_for(size_t milliseconds) noexcept {
+bool wait_context::wait_for(std::size_t milliseconds) noexcept {
     std::unique_lock<std::mutex> lock(m_lock);
     return m_condition.wait_for(lock, std::chrono::milliseconds(milliseconds), [this] {
         return m_ready;
@@ -51,7 +51,7 @@ void result_core_base::wait() {
     assert_done();
 }
 
-bool result_core_base::await(std::experimental::coroutine_handle<> caller_handle) noexcept {
+bool result_core_base::await(std::coroutine_handle<> caller_handle) noexcept {
     const auto state = m_pc_state.load(std::memory_order_acquire);
     if (state == pc_state::producer) {
         return false;  // don't suspend
@@ -70,7 +70,7 @@ bool result_core_base::await(std::experimental::coroutine_handle<> caller_handle
     return idle;  // if idle = true, suspend
 }
 
-bool result_core_base::await_via(std::shared_ptr<concurrencpp::executor> executor, std::experimental::coroutine_handle<> caller_handle, bool force_rescheduling) {
+bool result_core_base::await_via(std::shared_ptr<concurrencpp::executor> executor, std::coroutine_handle<> caller_handle, bool force_rescheduling) {
     assert(static_cast<bool>(executor));
     auto handle_done_state = [this](await_context& await_ctx, bool force_rescheduling) -> bool {
         assert_done();
@@ -125,7 +125,7 @@ void result_core_base::when_all(std::shared_ptr<when_all_state_base> when_all_st
     state_ptr->on_result_ready();
 }
 
-concurrencpp::details::when_any_status result_core_base::when_any(std::shared_ptr<when_any_state_base> when_any_state, size_t index) noexcept {
+concurrencpp::details::when_any_status result_core_base::when_any(std::shared_ptr<when_any_state_base> when_any_state, std::size_t index) noexcept {
     const auto state = m_pc_state.load(std::memory_order_acquire);
     if (state == pc_state::producer) {
         return when_any_status::result_ready;
@@ -164,7 +164,7 @@ void result_core_base::try_rewind_consumer() noexcept {
     m_consumer.emplace<0>();
 }
 
-void result_core_base::schedule_coroutine(concurrencpp::executor& executor, std::experimental::coroutine_handle<> coro_handle) {
+void result_core_base::schedule_coroutine(concurrencpp::executor& executor, std::coroutine_handle<> coro_handle) {
     assert(static_cast<bool>(coro_handle));
     assert(!coro_handle.done());
     executor.enqueue(coro_handle);

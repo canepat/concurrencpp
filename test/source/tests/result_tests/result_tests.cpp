@@ -116,7 +116,7 @@ void concurrencpp::tests::test_result_status_impl() {
         auto result = rp.get_result();
         rp.set_from_function(result_factory<type>::get);
 
-        for (size_t i = 0; i < 10; i++) {
+        for (std::size_t i = 0; i < 10; i++) {
             assert_equal(result.status(), result_status::value);
         }
     }
@@ -294,7 +294,7 @@ void concurrencpp::tests::test_result_wait_impl() {
             rp.set_from_function(result_factory<type>::get);
         });
 
-        for (size_t i = 0; i < 10; i++) {
+        for (std::size_t i = 0; i < 10; i++) {
             result.wait();
         }
 
@@ -422,7 +422,7 @@ void concurrencpp::tests::test_result_wait_for_impl() {
             rp.set_from_function(result_factory<type>::get);
         });
 
-        for (size_t i = 0; i < 10; i++) {
+        for (std::size_t i = 0; i < 10; i++) {
             result.wait_for(seconds(10));
         }
 
@@ -570,7 +570,7 @@ void concurrencpp::tests::test_result_wait_until_impl() {
             rp.set_from_function(result_factory<type>::get);
         });
 
-        for (size_t i = 0; i < 10; i++) {
+        for (std::size_t i = 0; i < 10; i++) {
             const auto later = high_resolution_clock::now() + seconds(1);
             result.wait_until(later);
         }

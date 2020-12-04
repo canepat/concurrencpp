@@ -33,7 +33,7 @@ namespace concurrencpp::tests {
 
 template<class type>
 void concurrencpp::tests::test_when_any_vector_empty_result() {
-    const size_t task_count = 63;
+    const std::size_t task_count = 63;
     std::vector<result_promise<type>> result_promises(task_count);
     std::vector<result<type>> results;
 
@@ -69,12 +69,12 @@ void concurrencpp::tests::test_when_any_vector_empty_range() {
 
 template<class type>
 concurrencpp::result<void> concurrencpp::tests::test_when_any_vector_valid(std::shared_ptr<thread_executor> ex) {
-    const size_t task_count = 64;
+    const std::size_t task_count = 64;
     auto values = result_factory<type>::get_many(task_count);
     std::vector<result<type>> results;
     random randomizer;
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         const auto time_to_sleep = randomizer(10, 100);
         results.emplace_back(ex->submit([i, time_to_sleep, &values]() -> type {
             (void)values;
@@ -256,7 +256,7 @@ concurrencpp::result<void> concurrencpp::tests::test_when_any_tuple_impl(std::sh
                                       std::move(s_ref_res_val),
                                       std::move(s_ref_res_ex));
 
-    assert_bigger_equal(counter.load(std::memory_order_relaxed), size_t(1));
+    assert_bigger_equal(counter.load(std::memory_order_relaxed), std::size_t(1));
 
     switch (any_done.index) {
         case 0: {

@@ -27,29 +27,29 @@ namespace concurrencpp::details {
 
     struct thread_pool_per_thread_data {
         thread_pool_worker* this_worker;
-        randomizer randomizer;
-        size_t this_thread_index;
+        concurrencpp::details::randomizer randomizer;
+        std::size_t this_thread_index;
 
-        thread_pool_per_thread_data() noexcept : this_worker(nullptr), randomizer(static_cast<uint32_t>(std::rand())), this_thread_index(static_cast<size_t>(-1)) {}
+        thread_pool_per_thread_data() noexcept : this_worker(nullptr), randomizer(static_cast<uint32_t>(std::rand())), this_thread_index(static_cast<std::size_t>(-1)) {}
     };
 
     static thread_local thread_pool_per_thread_data s_tl_thread_pool_data;
 }  // namespace concurrencpp::details
 
-idle_worker_set::idle_worker_set(size_t size) : m_approx_size(0), m_idle_flags(std::make_unique<padded_flag[]>(size)), m_size(size) {
-    for (size_t i = 0; i < size; i++) {
+idle_worker_set::idle_worker_set(std::size_t size) : m_approx_size(0), m_idle_flags(std::make_unique<padded_flag[]>(size)), m_size(size) {
+    for (std::size_t i = 0; i < size; i++) {
         m_idle_flags[i].flag = status::active;
     }
 }
 
-void idle_worker_set::set_idle(size_t idle_thread) noexcept {
+void idle_worker_set::set_idle(std::size_t idle_thread) noexcept {
     m_idle_flags[idle_thread].flag.store(status::idle, std::memory_order_relaxed);
     m_approx_size.fetch_add(1,
                             std::memory_order_release);  // the mo is in order for the addition to
     // happen AFTER flagging.
 }
 
-void idle_worker_set::set_active(size_t idle_thread) noexcept {
+void idle_worker_set::set_active(std::size_t idle_thread) noexcept {
     auto expected = status::idle;
     const auto swapped = m_idle_flags[idle_thread].flag.compare_exchange_strong(expected, status::active, std::memory_order_relaxed);
 
@@ -60,7 +60,7 @@ void idle_worker_set::set_active(size_t idle_thread) noexcept {
     m_approx_size.fetch_sub(1, std::memory_order_release);
 }
 
-bool idle_worker_set::try_acquire_flag(size_t index) noexcept {
+bool idle_worker_set::try_acquire_flag(std::size_t index) noexcept {
     const auto worker_status = m_idle_flags[index].flag.load(std::memory_order_relaxed);
     if (worker_status == status::active) {
         return false;
@@ -76,13 +76,13 @@ bool idle_worker_set::try_acquire_flag(size_t index) noexcept {
     return swapped;
 }
 
-size_t idle_worker_set::find_idle_worker(size_t caller_index) noexcept {
+std::size_t idle_worker_set::find_idle_worker(std::size_t caller_index) noexcept {
     if (m_approx_size.load(std::memory_order_relaxed) <= 0) {
-        return static_cast<size_t>(-1);
+        return static_cast<std::size_t>(-1);
     }
 
     const auto starting_pos = s_tl_thread_pool_data.randomizer() % m_size;
-    for (size_t i = 0; i < m_size; i++) {
+    for (std::size_t i = 0; i < m_size; i++) {
         const auto index = (starting_pos + i) % m_size;
         if (index == caller_index) {
             continue;
@@ -93,10 +93,10 @@ size_t idle_worker_set::find_idle_worker(size_t caller_index) noexcept {
         }
     }
 
-    return static_cast<size_t>(-1);
+    return static_cast<std::size_t>(-1);
 }
 
-void idle_worker_set::find_idle_workers(size_t caller_index, std::vector<size_t>& result_buffer, size_t max_count) noexcept {
+void idle_worker_set::find_idle_workers(std::size_t caller_index, std::vector<std::size_t>& result_buffer, std::size_t max_count) noexcept {
     assert(result_buffer.capacity() >= max_count);
 
     if (m_approx_size.load(std::memory_order_relaxed) <= 0) {
@@ -104,9 +104,9 @@ void idle_worker_set::find_idle_workers(size_t caller_index, std::vector<size_t>
     }
 
     const auto starting_pos = s_tl_thread_pool_data.randomizer() % m_size;
-    size_t count = 0;
+    std::size_t count = 0;
 
-    for (size_t i = 0; (i < m_size) && (count < max_count); i++) {
+    for (std::size_t i = 0; (i < m_size) && (count < max_count); i++) {
         const auto index = (starting_pos + i) % m_size;
         if (index == caller_index) {
             continue;
@@ -119,7 +119,7 @@ void idle_worker_set::find_idle_workers(size_t caller_index, std::vector<size_t>
     }
 }
 
-thread_pool_worker::thread_pool_worker(thread_pool_executor& parent_pool, size_t index, size_t pool_size, std::chrono::seconds max_idle_time) :
+thread_pool_worker::thread_pool_worker(thread_pool_executor& parent_pool, std::size_t index, std::size_t pool_size, std::chrono::seconds max_idle_time) :
     m_atomic_abort(false), m_parent_pool(parent_pool), m_index(index), m_pool_size(pool_size), m_max_idle_time(max_idle_time),
     m_worker_name(details::make_executor_worker_name(parent_pool.name)), m_status(status::idle), m_abort(false) {
     m_idle_worker_list.reserve(pool_size);
@@ -285,7 +285,7 @@ void thread_pool_worker::ensure_worker_active(std::unique_lock<std::mutex>& lock
     }
 }
 
-void thread_pool_worker::enqueue_foreign(std::experimental::coroutine_handle<> task) {
+void thread_pool_worker::enqueue_foreign(std::coroutine_handle<> task) {
     std::unique_lock<std::mutex> lock(m_lock);
     if (m_abort) {
         throw_executor_shutdown_exception(m_parent_pool.name);
@@ -295,7 +295,7 @@ void thread_pool_worker::enqueue_foreign(std::experimental::coroutine_handle<> t
     ensure_worker_active(lock);
 }
 
-void thread_pool_worker::enqueue_foreign(std::span<std::experimental::coroutine_handle<>> tasks) {
+void thread_pool_worker::enqueue_foreign(std::span<std::coroutine_handle<>> tasks) {
     std::unique_lock<std::mutex> lock(m_lock);
     if (m_abort) {
         throw_executor_shutdown_exception(m_parent_pool.name);
@@ -305,7 +305,7 @@ void thread_pool_worker::enqueue_foreign(std::span<std::experimental::coroutine_
     ensure_worker_active(lock);
 }
 
-void thread_pool_worker::enqueue_local(std::experimental::coroutine_handle<> task) {
+void thread_pool_worker::enqueue_local(std::coroutine_handle<> task) {
     if (m_atomic_abort.load(std::memory_order_relaxed)) {
         throw_executor_shutdown_exception(m_parent_pool.name);
     }
@@ -313,7 +313,7 @@ void thread_pool_worker::enqueue_local(std::experimental::coroutine_handle<> tas
     m_private_queue.emplace_back(task);
 }
 
-void thread_pool_worker::enqueue_local(std::span<std::experimental::coroutine_handle<>> tasks) {
+void thread_pool_worker::enqueue_local(std::span<std::coroutine_handle<>> tasks) {
     if (m_atomic_abort.load(std::memory_order_relaxed)) {
         throw_executor_shutdown_exception(m_parent_pool.name);
     }
@@ -341,40 +341,40 @@ void thread_pool_worker::join() noexcept {
     destroy_tasks();
 }
 
-thread_pool_executor::thread_pool_executor(std::string_view name, size_t size, std::chrono::seconds max_idle_time) :
+thread_pool_executor::thread_pool_executor(std::string_view name, std::size_t size, std::chrono::seconds max_idle_time) :
     derivable_executor<concurrencpp::thread_pool_executor>(name), m_round_robin_cursor(0), m_idle_workers(size), m_abort(false) {
     m_workers.reserve(size);
 
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
-    for (size_t i = 0; i < size; i++) {
+    for (std::size_t i = 0; i < size; i++) {
         m_workers.emplace_back(*this, i, size, max_idle_time);
     }
 
-    for (size_t i = 0; i < size; i++) {
+    for (std::size_t i = 0; i < size; i++) {
         m_idle_workers.set_idle(i);
     }
 }
 
 thread_pool_executor::~thread_pool_executor() noexcept {}
 
-void thread_pool_executor::find_idle_workers(size_t caller_index, std::vector<size_t>& buffer, size_t max_count) noexcept {
+void thread_pool_executor::find_idle_workers(std::size_t caller_index, std::vector<std::size_t>& buffer, std::size_t max_count) noexcept {
     m_idle_workers.find_idle_workers(caller_index, buffer, max_count);
 }
 
-void thread_pool_executor::mark_worker_idle(size_t index) noexcept {
+void thread_pool_executor::mark_worker_idle(std::size_t index) noexcept {
     assert(index < m_workers.size());
     m_idle_workers.set_idle(index);
 }
 
-void thread_pool_executor::mark_worker_active(size_t index) noexcept {
+void thread_pool_executor::mark_worker_active(std::size_t index) noexcept {
     assert(index < m_workers.size());
     m_idle_workers.set_active(index);
 }
 
-void thread_pool_executor::enqueue(std::experimental::coroutine_handle<> task) {
+void thread_pool_executor::enqueue(std::coroutine_handle<> task) {
     const auto idle_worker_pos = m_idle_workers.find_idle_worker(details::s_tl_thread_pool_data.this_thread_index);
-    if (idle_worker_pos != static_cast<size_t>(-1)) {
+    if (idle_worker_pos != static_cast<std::size_t>(-1)) {
         return m_workers[idle_worker_pos].enqueue_foreign(task);
     }
 
@@ -386,7 +386,7 @@ void thread_pool_executor::enqueue(std::experimental::coroutine_handle<> task) {
     m_workers[next_worker].enqueue_foreign(task);
 }
 
-void thread_pool_executor::enqueue(std::span<std::experimental::coroutine_handle<>> tasks) {
+void thread_pool_executor::enqueue(std::span<std::coroutine_handle<>> tasks) {
     if (details::s_tl_thread_pool_data.this_worker != nullptr) {
         return details::s_tl_thread_pool_data.this_worker->enqueue_local(tasks);
     }
@@ -400,15 +400,15 @@ void thread_pool_executor::enqueue(std::span<std::experimental::coroutine_handle
     }
 
     const auto approx_bulk_size = static_cast<float>(tasks.size()) / static_cast<float>(m_workers.size());
-    const auto bulk_size = static_cast<size_t>(std::ceil(approx_bulk_size));
+    const auto bulk_size = static_cast<std::size_t>(std::ceil(approx_bulk_size));
 
-    size_t worker_index = 0;
+    std::size_t worker_index = 0;
     auto cursor = tasks.data();
     const auto absolute_end = tasks.data() + tasks.size();
 
     while (cursor < absolute_end) {
         auto end = (cursor + bulk_size > absolute_end) ? absolute_end : (cursor + bulk_size);
-        std::span<std::experimental::coroutine_handle<>> range = {cursor, end};
+        std::span<std::coroutine_handle<>> range = {cursor, end};
         m_workers[worker_index].enqueue_foreign(range);
         cursor += bulk_size;
         ++worker_index;

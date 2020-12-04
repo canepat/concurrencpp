@@ -22,8 +22,8 @@ std::unique_ptr<matrix> make_matrix() {
     auto mtx_ptr = std::make_unique<matrix>();
     auto& mtx = *mtx_ptr;
 
-    for (size_t i = 0; i < 1024; i++) {
-        for (size_t j = 0; j < 1024; j++) {
+    for (std::size_t i = 0; i < 1024; i++) {
+        for (std::size_t j = 0; j < 1024; j++) {
             mtx[i][j] = distribution(generator);
         }
     }
@@ -32,12 +32,12 @@ std::unique_ptr<matrix> make_matrix() {
 }
 
 void test_matrix(const matrix& mtx0, const matrix& mtx1, const matrix& mtx2) {
-    for (size_t i = 0; i < 1024; i++) {
-        for (size_t j = 0; j < 1024; j++) {
+    for (std::size_t i = 0; i < 1024; i++) {
+        for (std::size_t j = 0; j < 1024; j++) {
 
             double res = 0.0;
 
-            for (size_t k = 0; k < 1024; k++) {
+            for (std::size_t k = 0; k < 1024; k++) {
                 res += mtx0[i][k] * mtx1[k][j];
             }
 
@@ -49,10 +49,10 @@ void test_matrix(const matrix& mtx0, const matrix& mtx1, const matrix& mtx2) {
 }
 
 result<void>
-do_multiply(executor_tag, std::shared_ptr<thread_pool_executor> executor, const matrix& mtx0, const matrix& mtx1, matrix& mtx2, size_t line, size_t col) {
+do_multiply(executor_tag, std::shared_ptr<thread_pool_executor> executor, const matrix& mtx0, const matrix& mtx1, matrix& mtx2, std::size_t line, std::size_t col) {
 
     double res = 0.0;
-    for (size_t i = 0; i < 1024; i++) {
+    for (std::size_t i = 0; i < 1024; i++) {
         res += mtx0[line][i] * mtx1[i][col];
     }
 
@@ -72,8 +72,8 @@ result<void> test_matrix_multiplication(std::shared_ptr<thread_pool_executor> ex
     std::vector<result<void>> results;
     results.reserve(1024 * 1024);
 
-    for (size_t i = 0; i < 1024; i++) {
-        for (size_t j = 0; j < 1024; j++) {
+    for (std::size_t i = 0; i < 1024; i++) {
+        for (std::size_t j = 0; j < 1024; j++) {
             results.emplace_back(do_multiply({}, ex, mtx0, mtx1, mtx2, i, j));
         }
     }

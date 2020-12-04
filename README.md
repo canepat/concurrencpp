@@ -66,17 +66,17 @@ std::vector<int> make_random_vector() {
     return vec;
 }
 
-result<size_t> count_even(std::shared_ptr<thread_pool_executor> tpe, const std::vector<int>& vector) {
+result<std::size_t> count_even(std::shared_ptr<thread_pool_executor> tpe, const std::vector<int>& vector) {
     const auto vecor_size = vector.size();
     const auto concurrency_level = tpe->max_concurrency_level();
     const auto chunk_size = vecor_size / concurrency_level;
 
-    std::vector<result<size_t>> chunk_count;
+    std::vector<result<std::size_t>> chunk_count;
 
     for (auto i = 0; i < concurrency_level; i++) {
         const auto chunk_begin = i * chunk_size;
         const auto chunk_end = chunk_begin + chunk_size;
-        auto result = tpe->submit([&vector, chunk_begin, chunk_end]() -> size_t {
+        auto result = tpe->submit([&vector, chunk_begin, chunk_end]() -> std::size_t {
             return std::count_if(vector.begin() + chunk_begin, vector.begin() + chunk_end, [](auto i) {
                 return i % 2 == 0;
             });
@@ -85,7 +85,7 @@ result<size_t> count_even(std::shared_ptr<thread_pool_executor> tpe, const std::
         chunk_count.emplace_back(std::move(result));
     }
 
-    size_t total_count = 0;
+    std::size_t total_count = 0;
 
     for (auto& result : chunk_count) {
         total_count += co_await result;
@@ -187,13 +187,13 @@ class executor {
 		Schedules a suspended coroutine to run in this executor. 
 		Throws concurrencpp::errors::executor_shutdown exception if shutdown was called before.
 	*/
-	virtual void enqueue(std::experimental::coroutine_handle<> task) = 0;
+	virtual void enqueue(std::coroutine_handle<> task) = 0;
 
 	/*
 		Schedules a range of suspended coroutines to run in this executor. 
 		Throws concurrencpp::errors::executor_shutdown exception if shutdown was called before.
 	*/	
-	virtual void enqueue(std::span<std::experimental::coroutine_handle<>> tasks) = 0;
+	virtual void enqueue(std::span<std::coroutine_handle<>> tasks) = 0;
 
 	/*
 		Returns the maximum count of real OS threads this executor supports. 
@@ -711,7 +711,7 @@ result<std::tuple<>> when_all();
 */
 template <class sequence_type>
 struct when_any_result {
-	std::size_t index;
+	std::std::size_t index;
 	sequence_type results;
 };
 
@@ -951,7 +951,7 @@ using namespace std::chrono_literals;
 concurrencpp::null_result delayed_task(
 	std::shared_ptr<concurrencpp::timer_queue> tq,
 	std::shared_ptr<concurrencpp::thread_pool_executor> ex) {
-	size_t counter = 1;
+	std::size_t counter = 1;
 
 	while(true) {
 		std::cout << "task was invoked " << counter << " times." << std::endl;
@@ -1082,7 +1082,7 @@ class logging_executor : public concurrencpp::derivable_executor<logging_executo
 
 private:
 	mutable std::mutex _lock;
-	std::queue<std::experimental::coroutine_handle<>> _queue;
+	std::queue<std::coroutine_handle<>> _queue;
 	std::condition_variable _condition;
 	bool _shutdown_requested;
 	std::thread _thread;
@@ -1120,7 +1120,7 @@ public:
 		});
 	}
 
-	void enqueue(std::experimental::coroutine_handle<> task) override {
+	void enqueue(std::coroutine_handle<> task) override {
 		std::cout << _prefix << " A task is being enqueued!" << std::endl;
 
 		std::unique_lock<std::mutex> lock(_lock);
@@ -1132,7 +1132,7 @@ public:
 		_condition.notify_one();
 	}
 
-	void enqueue(std::span<std::experimental::coroutine_handle<>> tasks) override {
+	void enqueue(std::span<std::coroutine_handle<>> tasks) override {
 		std::cout << _prefix << tasks.size() << " tasks are being enqueued!" << std::endl;
 
 		std::unique_lock<std::mutex> lock(_lock);
@@ -1181,7 +1181,7 @@ int main() {
 	concurrencpp::runtime runtime;
 	auto logging_ex = runtime.make_executor<logging_executor>("Session #1234");
 
-	for (size_t i = 0; i < 10; i++) {
+	for (std::size_t i = 0; i < 10; i++) {
 		logging_ex->post([] {
 			std::cout << "hello world" << std::endl;
 		});

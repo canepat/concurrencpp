@@ -19,7 +19,7 @@ namespace mock_web_socket {
         return randomized_num <= 5;
     }
 
-    size_t random_in_range(size_t min, size_t max) {
+    std::size_t random_in_range(std::size_t min, std::size_t max) {
         const auto range = max - min + 1;
         return std::rand() % range + min;
     }

@@ -33,7 +33,7 @@ namespace concurrencpp::tests {
             return 123456789;
         }
 
-        static std::vector<int> get_many(size_t count) {
+        static std::vector<int> get_many(std::size_t count) {
             std::vector<int> res(count);
             std::iota(res.begin(), res.end(), 0);
             return res;
@@ -59,11 +59,11 @@ namespace concurrencpp::tests {
             return "abcdefghijklmnopqrstuvwxyz123456789!@#$%^&*()";
         }
 
-        static std::vector<std::string> get_many(size_t count) {
+        static std::vector<std::string> get_many(std::size_t count) {
             std::vector<std::string> res;
             res.reserve(count);
 
-            for (size_t i = 0; i < count; i++) {
+            for (std::size_t i = 0; i < count; i++) {
                 res.emplace_back(std::to_string(i));
             }
 
@@ -92,7 +92,7 @@ namespace concurrencpp::tests {
             throw std::underflow_error("");
         }
 
-        static std::vector<std::nullptr_t> get_many(size_t count) {
+        static std::vector<std::nullptr_t> get_many(std::size_t count) {
             return std::vector<std::nullptr_t> {count};
         }
 
@@ -112,11 +112,11 @@ namespace concurrencpp::tests {
             return i;
         }
 
-        static std::vector<std::reference_wrapper<int>> get_many(size_t count) {
+        static std::vector<std::reference_wrapper<int>> get_many(std::size_t count) {
             static std::vector<int> s_res(64);
             std::vector<std::reference_wrapper<int>> res;
             res.reserve(count);
-            for (size_t i = 0; i < count; i++) {
+            for (std::size_t i = 0; i < count; i++) {
                 res.emplace_back(s_res[i % 64]);
             }
 
@@ -144,11 +144,11 @@ namespace concurrencpp::tests {
             return str;
         }
 
-        static std::vector<std::reference_wrapper<std::string>> get_many(size_t count) {
+        static std::vector<std::reference_wrapper<std::string>> get_many(std::size_t count) {
             static std::vector<std::string> s_res(64);
             std::vector<std::reference_wrapper<std::string>> res;
             res.reserve(count);
-            for (size_t i = 0; i < count; i++) {
+            for (std::size_t i = 0; i < count; i++) {
                 res.emplace_back(s_res[i % 64]);
             }
 

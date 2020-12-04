@@ -109,10 +109,10 @@ void concurrencpp::tests::test_result_promise_RAII_impl() {
     }
 
     rps.clear();
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
     results.clear();
-    assert_equal(observer.get_destruction_count(), size_t(500'000));
+    assert_equal(observer.get_destruction_count(), std::size_t(500'000));
 }
 
 void concurrencpp::tests::test_result_promise_destructor() {

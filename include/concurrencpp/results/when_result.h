@@ -144,10 +144,10 @@ namespace concurrencpp {
         std::size_t index;
         sequence_type results;
 
-        when_any_result() noexcept : index(static_cast<size_t>(-1)) {}
+        when_any_result() noexcept : index(static_cast<std::size_t>(-1)) {}
 
         template<class... result_types>
-        when_any_result(size_t index, result_types&&... results) noexcept : index(index), results(std::forward<result_types>(results)...) {}
+        when_any_result(std::size_t index, result_types&&... results) noexcept : index(index), results(std::forward<result_types>(results)...) {}
 
         when_any_result(when_any_result&&) noexcept = default;
         when_any_result& operator=(when_any_result&&) noexcept = default;
@@ -164,8 +164,8 @@ namespace concurrencpp::details {
         tuple_type m_results;
         std::shared_ptr<result_core<when_any_result<tuple_type>>> m_core_ptr;
 
-        template<size_t index>
-        std::pair<when_any_status, size_t> set_state_impl(std::unique_lock<std::recursive_mutex>& lock) noexcept {  // should be called under a lock.
+        template<std::size_t index>
+        std::pair<when_any_status, std::size_t> set_state_impl(std::unique_lock<std::recursive_mutex>& lock) noexcept {  // should be called under a lock.
             assert(lock.owns_lock());
             (void)lock;
 
@@ -186,14 +186,16 @@ namespace concurrencpp::details {
             return res;
         }
 
+#if not defined(__GNUC__) && not defined(__GNUG__)
         template<>
-        std::pair<when_any_status, size_t> set_state_impl<sizeof...(result_types)>(std::unique_lock<std::recursive_mutex>& lock) noexcept {
+        std::pair<when_any_status, std::size_t> set_state_impl<sizeof...(result_types)>(std::unique_lock<std::recursive_mutex>& lock) noexcept {
             (void)lock;
-            return {when_any_status::set, static_cast<size_t>(-1)};
+            return {when_any_status::set, static_cast<std::size_t>(-1)};
         }
+#endif
 
-        template<size_t index>
-        void unset_state(std::unique_lock<std::recursive_mutex>& lock, size_t done_index) noexcept {
+        template<std::size_t index>
+        void unset_state(std::unique_lock<std::recursive_mutex>& lock, std::size_t done_index) noexcept {
             assert(lock.owns_lock());
             (void)lock;
             if (index != done_index) {
@@ -204,13 +206,15 @@ namespace concurrencpp::details {
             unset_state<index + 1>(lock, done_index);
         }
 
+#if not defined(__GNUC__) && not defined(__GNUG__)
         template<>
-        void unset_state<sizeof...(result_types)>(std::unique_lock<std::recursive_mutex>& lock, size_t done_index) noexcept {
+        void unset_state<sizeof...(result_types)>(std::unique_lock<std::recursive_mutex>& lock, std::size_t done_index) noexcept {
             (void)lock;
             (void)done_index;
         }
+#endif
 
-        void complete_promise(std::unique_lock<std::recursive_mutex>& lock, size_t index) noexcept {
+        void complete_promise(std::unique_lock<std::recursive_mutex>& lock, std::size_t index) noexcept {
             assert(lock.owns_lock());
             (void)lock;
 
@@ -222,7 +226,7 @@ namespace concurrencpp::details {
         when_any_tuple_state(result_types&&... results) :
             m_results(std::forward<result_types>(results)...), m_core_ptr(std::make_shared<result_core<when_any_result<tuple_type>>>()) {}
 
-        void on_result_ready(size_t index) noexcept override {
+        void on_result_ready(std::size_t index) noexcept override {
             if (m_fulfilled.exchange(true, std::memory_order_relaxed)) {
                 return;
             }
@@ -264,7 +268,7 @@ namespace concurrencpp::details {
             }
         }
 
-        void complete_promise(std::unique_lock<std::recursive_mutex>& lock, size_t index) noexcept {
+        void complete_promise(std::unique_lock<std::recursive_mutex>& lock, std::size_t index) noexcept {
             assert(lock.owns_lock());
             (void)lock;
             m_core_ptr->set_result(index, std::move(m_results));
@@ -277,7 +281,7 @@ namespace concurrencpp::details {
             m_results(std::make_move_iterator(begin), std::make_move_iterator(end)),
             m_core_ptr(std::make_shared<result_core<when_any_result<std::vector<type>>>>()) {}
 
-        void on_result_ready(size_t index) noexcept override {
+        void on_result_ready(std::size_t index) noexcept override {
             if (m_fulfilled.exchange(true, std::memory_order_relaxed)) {
                 return;
             }
@@ -289,7 +293,7 @@ namespace concurrencpp::details {
 
         void set_state() noexcept {
             std::unique_lock<std::recursive_mutex> lock(m_lock);
-            for (size_t i = 0; i < m_results.size(); i++) {
+            for (std::size_t i = 0; i < m_results.size(); i++) {
                 if (m_fulfilled.load(std::memory_order_relaxed)) {
                     return;
                 }

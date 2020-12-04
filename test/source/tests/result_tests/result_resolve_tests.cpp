@@ -219,7 +219,7 @@ result<void> concurrencpp::tests::test_result_resolve_via_ready_val_force_resche
 template<class type>
 result<void> concurrencpp::tests::test_result_resolve_via_ready_err_force_rescheduling(std::shared_ptr<test_executor> executor) {
     random randomizer;
-    auto id = static_cast<size_t>(randomizer());
+    auto id = static_cast<std::size_t>(randomizer());
     auto result = make_exceptional_result<type>(costume_exception(id));
 
     auto done_result = co_await result.resolve_via(executor, true);

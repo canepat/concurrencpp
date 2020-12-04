@@ -39,6 +39,8 @@
 
 # Others
 .vs
+.vscode/
+*.code-workspace
 
 # Specific directories
 build/

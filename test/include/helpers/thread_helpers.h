@@ -1,7 +1,7 @@
 #ifndef CONCURRENCPP_THREAD_HELPERS_H
 #define CONCURRENCPP_THREAD_HELPERS_H
 
-#include "concurrencpp.h"
+#include "concurrencpp/concurrencpp.h"
 
 #include <memory>
 #include <atomic>
@@ -23,19 +23,19 @@ namespace concurrencpp::tests {
 
         virtual ~test_listener() noexcept = default;
 
-        size_t total_created() const noexcept {
+        std::size_t total_created() const noexcept {
             return m_total_created.load();
         }
-        size_t total_destroyed() const noexcept {
+        std::size_t total_destroyed() const noexcept {
             return m_total_destroyed.load();
         }
-        size_t total_waiting() const noexcept {
+        std::size_t total_waiting() const noexcept {
             return m_total_waiting.load();
         }
-        size_t total_resuming() const noexcept {
+        std::size_t total_resuming() const noexcept {
             return m_total_resuming.load();
         }
-        size_t total_idling() const noexcept {
+        std::size_t total_idling() const noexcept {
             return m_total_idling.load();
         }
 

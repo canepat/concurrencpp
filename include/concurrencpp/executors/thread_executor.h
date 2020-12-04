@@ -10,7 +10,7 @@
 #include <span>
 #include <mutex>
 #include <condition_variable>
-#include <experimental/coroutine>
+#include <coroutine>
 
 namespace concurrencpp::details {
     class thread_worker {
@@ -19,13 +19,13 @@ namespace concurrencpp::details {
         thread m_thread;
         thread_executor& m_parent_pool;
 
-        void execute_and_retire(std::experimental::coroutine_handle<> task, typename std::list<thread_worker>::iterator self_it);
+        void execute_and_retire(std::coroutine_handle<> task, typename std::list<thread_worker>::iterator self_it);
 
        public:
         thread_worker(thread_executor& parent_pool) noexcept;
         ~thread_worker() noexcept;
 
-        void start(const std::string worker_name, std::experimental::coroutine_handle<> task, std::list<thread_worker>::iterator self_it);
+        void start(const std::string worker_name, std::coroutine_handle<> task, std::list<thread_worker>::iterator self_it);
     };
 }  // namespace concurrencpp::details
 
@@ -42,7 +42,7 @@ namespace concurrencpp {
         bool m_abort;
         std::atomic_bool m_atomic_abort;
 
-        void enqueue_impl(std::experimental::coroutine_handle<> task);
+        void enqueue_impl(std::coroutine_handle<> task);
 
         void retire_worker(std::list<details::thread_worker>::iterator it);
 
@@ -50,8 +50,8 @@ namespace concurrencpp {
         thread_executor();
         ~thread_executor() noexcept;
 
-        void enqueue(std::experimental::coroutine_handle<> task) override;
-        void enqueue(std::span<std::experimental::coroutine_handle<>> tasks) override;
+        void enqueue(std::coroutine_handle<> task) override;
+        void enqueue(std::span<std::coroutine_handle<>> tasks) override;
 
         int max_concurrency_level() const noexcept override;
 

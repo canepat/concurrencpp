@@ -34,7 +34,7 @@ namespace concurrencpp::tests {
 
 template<class type>
 void concurrencpp::tests::test_when_all_vector_empty_result() {
-    const size_t task_count = 63;
+    const std::size_t task_count = 63;
     std::vector<result_promise<type>> result_promises(task_count);
     std::vector<result<type>> results;
 
@@ -67,14 +67,14 @@ void concurrencpp::tests::test_when_all_vector_empty_range() {
 
 template<class type>
 concurrencpp::result<void> concurrencpp::tests::test_when_all_vector_valid(std::shared_ptr<thread_executor> ex) {
-    const size_t task_count = 1'024;
+    const std::size_t task_count = 1'024;
     auto values = result_factory<type>::get_many(task_count);
     std::atomic_size_t counter = 0;
 
     std::vector<result<type>> results;
     results.reserve(1'024);
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         results.emplace_back(ex->submit([&values, &counter, i]() -> type {
             (void)values;
             counter.fetch_add(1, std::memory_order_relaxed);
@@ -107,7 +107,7 @@ concurrencpp::result<void> concurrencpp::tests::test_when_all_vector_valid(std::
 
     assert_true(all_done);
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         if (i % 4 == 0) {
             test_ready_result_costume_exception(std::move(done_results[i]), i);
         } else {
@@ -253,7 +253,7 @@ concurrencpp::result<void> concurrencpp::tests::test_when_all_tuple_valid(std::s
 
     auto done_results_tuple = co_await all;
 
-    assert_equal(counter.load(std::memory_order_relaxed), size_t(10));
+    assert_equal(counter.load(std::memory_order_relaxed), std::size_t(10));
 
     test_ready_result_result(std::move(std::get<0>(done_results_tuple)), result_factory<int>::get());
     test_ready_result_result(std::move(std::get<2>(done_results_tuple)), result_factory<std::string>::get());

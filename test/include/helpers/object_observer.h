@@ -40,10 +40,10 @@ namespace concurrencpp::tests {
     class value_testing_stub : public testing_stub {
 
        private:
-        const size_t m_return_value;
+        const std::size_t m_return_value;
 
        public:
-        value_testing_stub(size_t return_value) noexcept : m_return_value(return_value) {}
+        value_testing_stub(std::size_t return_value) noexcept : m_return_value(return_value) {}
 
         value_testing_stub(std::shared_ptr<details::object_observer_state> state, const std::chrono::milliseconds dummy_work_time, int return_value) noexcept :
             testing_stub(std::move(state), dummy_work_time), m_return_value(return_value) {}
@@ -52,7 +52,7 @@ namespace concurrencpp::tests {
 
         value_testing_stub& operator=(value_testing_stub&& rhs) noexcept;
 
-        size_t operator()() noexcept;
+        std::size_t operator()() noexcept;
     };
 
     class object_observer {
@@ -66,15 +66,15 @@ namespace concurrencpp::tests {
 
         testing_stub get_testing_stub(std::chrono::milliseconds dummy_work_time = std::chrono::milliseconds(0)) noexcept;
         value_testing_stub get_testing_stub(int value, std::chrono::milliseconds dummy_work_time = std::chrono::milliseconds(0)) noexcept;
-        value_testing_stub get_testing_stub(size_t value, std::chrono::milliseconds dummy_work_time = std::chrono::milliseconds(0)) noexcept;
+        value_testing_stub get_testing_stub(std::size_t value, std::chrono::milliseconds dummy_work_time = std::chrono::milliseconds(0)) noexcept;
 
-        bool wait_execution_count(size_t count, std::chrono::milliseconds timeout);
-        bool wait_destruction_count(size_t count, std::chrono::milliseconds timeout);
+        bool wait_execution_count(std::size_t count, std::chrono::milliseconds timeout);
+        bool wait_destruction_count(std::size_t count, std::chrono::milliseconds timeout);
 
-        size_t get_destruction_count() const noexcept;
-        size_t get_execution_count() const noexcept;
+        std::size_t get_destruction_count() const noexcept;
+        std::size_t get_execution_count() const noexcept;
 
-        std::unordered_map<size_t, size_t> get_execution_map() const noexcept;
+        std::unordered_map<std::size_t, std::size_t> get_execution_map() const noexcept;
     };
 
 }  // namespace concurrencpp::tests

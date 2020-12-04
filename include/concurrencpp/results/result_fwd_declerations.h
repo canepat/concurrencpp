@@ -5,7 +5,7 @@
 
 #include <memory>
 #include <utility>
-#include <experimental/coroutine>
+#include <coroutine>
 
 namespace concurrencpp {
     template<class type>
@@ -33,7 +33,7 @@ namespace concurrencpp::details {
     template<class type>
     class result_core;
 
-    using await_context = std::pair<std::shared_ptr<executor>, std::experimental::coroutine_handle<>>;
+    using await_context = std::pair<std::shared_ptr<executor>, std::coroutine_handle<>>;
 
     struct executor_bulk_tag {};
 

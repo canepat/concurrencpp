@@ -57,7 +57,7 @@ void test_worker_thread_executor() {
         executor = runtime.make_worker_thread_executor();
     }
 
-    for (size_t i = 0; i < 16; i++) {
+    for (std::size_t i = 0; i < 16; i++) {
         executors[i]->post(worker_thread_task, std::ref(executors), std::ref(counter), wc);
     }
 
@@ -85,7 +85,7 @@ void test_thread_pool_executor() {
     auto wc = std::make_shared<concurrencpp::details::wait_context>();
     const auto max_concurrency_level = tpe->max_concurrency_level();
 
-    for (size_t i = 0; i < max_concurrency_level; i++) {
+    for (std::size_t i = 0; i < max_concurrency_level; i++) {
         tpe->post(thread_pool_task, tpe, std::ref(counter), wc);
     }
 
@@ -111,14 +111,14 @@ void test_thread_executor() {
     std::atomic_size_t counter = 0;
     auto wc = std::make_shared<concurrencpp::details::wait_context>();
 
-    for (size_t i = 0; i < 4; i++) {
+    for (std::size_t i = 0; i < 4; i++) {
         tp->post(thread_task, tp, std::ref(counter), wc);
     }
 
     wc->wait();
 }
 
-void manual_executor_work_loop(std::shared_ptr<manual_executor> (&executors)[16], std::atomic_size_t& counter, const size_t worker_index) {
+void manual_executor_work_loop(std::shared_ptr<manual_executor> (&executors)[16], std::atomic_size_t& counter, const std::size_t worker_index) {
 
     while (true) {
         const auto c = counter.fetch_add(1, std::memory_order_relaxed);
@@ -146,7 +146,7 @@ void test_manual_executor() {
         executor = runtime.make_manual_executor();
     }
 
-    for (size_t i = 0; i < std::size(executors); i++) {
+    for (std::size_t i = 0; i < std::size(executors); i++) {
         threads[i] = std::thread([&, i] {
             manual_executor_work_loop(executors, std::ref(counter), i);
         });

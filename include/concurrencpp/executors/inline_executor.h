@@ -21,12 +21,12 @@ namespace concurrencpp {
        public:
         inline_executor() noexcept : executor(details::consts::k_inline_executor_name), m_abort(false) {}
 
-        void enqueue(std::experimental::coroutine_handle<> task) override {
+        void enqueue(std::coroutine_handle<> task) override {
             throw_if_aborted();
             task();
         }
 
-        void enqueue(std::span<std::experimental::coroutine_handle<>> tasks) override {
+        void enqueue(std::span<std::coroutine_handle<>> tasks) override {
             throw_if_aborted();
 
             for (auto& task : tasks) {

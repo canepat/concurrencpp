@@ -25,10 +25,10 @@ namespace concurrencpp::details {
 
 namespace concurrencpp {
     struct runtime_options {
-        size_t max_cpu_threads;
+        std::size_t max_cpu_threads;
         std::chrono::seconds max_cpu_thread_waiting_time;
 
-        size_t max_background_threads;
+        std::size_t max_background_threads;
         std::chrono::seconds max_background_thread_waiting_time;
 
         runtime_options() noexcept;

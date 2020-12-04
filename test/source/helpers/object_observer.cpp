@@ -7,29 +7,29 @@ namespace concurrencpp::tests::details {
        private:
         mutable std::mutex m_lock;
         mutable std::condition_variable m_condition;
-        std::unordered_map<size_t, size_t> m_execution_map;
-        size_t m_destruction_count;
-        size_t m_execution_count;
+        std::unordered_map<std::size_t, std::size_t> m_execution_map;
+        std::size_t m_destruction_count;
+        std::size_t m_execution_count;
 
        public:
         object_observer_state() : m_destruction_count(0), m_execution_count(0) {}
 
-        size_t get_destruction_count() const noexcept {
+        std::size_t get_destruction_count() const noexcept {
             std::unique_lock<decltype(m_lock)> lock(m_lock);
             return m_destruction_count;
         }
 
-        size_t get_execution_count() const noexcept {
+        std::size_t get_execution_count() const noexcept {
             std::unique_lock<decltype(m_lock)> lock(m_lock);
             return m_execution_count;
         }
 
-        std::unordered_map<size_t, size_t> get_execution_map() const noexcept {
+        std::unordered_map<std::size_t, std::size_t> get_execution_map() const noexcept {
             std::unique_lock<decltype(m_lock)> lock(m_lock);
             return m_execution_map;
         }
 
-        bool wait_execution_count(size_t count, std::chrono::milliseconds timeout) {
+        bool wait_execution_count(std::size_t count, std::chrono::milliseconds timeout) {
             std::unique_lock<decltype(m_lock)> lock(m_lock);
             return m_condition.wait_for(lock, timeout, [count, this] {
                 return count == m_execution_count;
@@ -48,7 +48,7 @@ namespace concurrencpp::tests::details {
             m_condition.notify_all();
         }
 
-        bool wait_destruction_count(size_t count, std::chrono::milliseconds timeout) {
+        bool wait_destruction_count(std::size_t count, std::chrono::milliseconds timeout) {
             std::unique_lock<decltype(m_lock)> lock(m_lock);
             return m_condition.wait_for(lock, timeout, [count, this] {
                 return count == m_destruction_count;
@@ -98,7 +98,7 @@ value_testing_stub& value_testing_stub::operator=(value_testing_stub&& rhs) noex
     return *this;
 }
 
-size_t value_testing_stub::operator()() noexcept {
+std::size_t value_testing_stub::operator()() noexcept {
     testing_stub::operator()();
     return m_return_value;
 }
@@ -113,27 +113,27 @@ value_testing_stub object_observer::get_testing_stub(int value, std::chrono::mil
     return {m_state, dummy_work_time, value};
 }
 
-value_testing_stub object_observer::get_testing_stub(size_t value, std::chrono::milliseconds dummy_work_time) noexcept {
+value_testing_stub object_observer::get_testing_stub(std::size_t value, std::chrono::milliseconds dummy_work_time) noexcept {
     return {m_state, dummy_work_time, static_cast<int>(value)};
 }
 
-bool object_observer::wait_execution_count(size_t count, std::chrono::milliseconds timeout) {
+bool object_observer::wait_execution_count(std::size_t count, std::chrono::milliseconds timeout) {
     return m_state->wait_execution_count(count, timeout);
 }
 
-bool object_observer::wait_destruction_count(size_t count, std::chrono::milliseconds timeout) {
+bool object_observer::wait_destruction_count(std::size_t count, std::chrono::milliseconds timeout) {
     return m_state->wait_destruction_count(count, timeout);
 }
 
-size_t object_observer::get_destruction_count() const noexcept {
+std::size_t object_observer::get_destruction_count() const noexcept {
     return m_state->get_destruction_count();
 }
 
-size_t object_observer::get_execution_count() const noexcept {
+std::size_t object_observer::get_execution_count() const noexcept {
     return m_state->get_execution_count();
 }
 
-std::unordered_map<size_t, size_t> object_observer::get_execution_map() const noexcept {
+std::unordered_map<std::size_t, std::size_t> object_observer::get_execution_map() const noexcept {
     return m_state->get_execution_map();
 }
 

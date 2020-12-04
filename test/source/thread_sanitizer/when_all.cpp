@@ -16,7 +16,7 @@ std::vector<result<int>> run_loop_once(std::shared_ptr<thread_executor> tpe) {
     std::vector<result<int>> results;
     results.reserve(1'024);
 
-    for (size_t i = 0; i < 1'024; i++) {
+    for (std::size_t i = 0; i < 1'024; i++) {
         results.emplace_back(tpe->submit([] {
             std::this_thread::yield();
             return 0;

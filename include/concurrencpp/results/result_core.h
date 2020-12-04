@@ -25,7 +25,7 @@ namespace concurrencpp::details {
 
        public:
         void wait() noexcept;
-        bool wait_for(size_t milliseconds) noexcept;
+        bool wait_for(std::size_t milliseconds) noexcept;
 
         void notify() noexcept;
     };
@@ -42,10 +42,10 @@ namespace concurrencpp::details {
         std::recursive_mutex m_lock;
 
         virtual ~when_any_state_base() noexcept = default;
-        virtual void on_result_ready(size_t) noexcept = 0;
+        virtual void on_result_ready(std::size_t) noexcept = 0;
     };
 
-    using when_any_ctx = std::pair<std::shared_ptr<when_any_state_base>, size_t>;
+    using when_any_ctx = std::pair<std::shared_ptr<when_any_state_base>, std::size_t>;
 
     template<class type>
     class async_result {
@@ -139,7 +139,7 @@ namespace concurrencpp::details {
 
             auto pointer = std::get<1>(m_result);
             assert(pointer != nullptr);
-            assert(reinterpret_cast<size_t>(pointer) % alignof(type) == 0);
+            assert(reinterpret_cast<std::size_t>(pointer) % alignof(type) == 0);
 
             return *pointer;
         }
@@ -149,7 +149,7 @@ namespace concurrencpp::details {
 
        public:
         using consumer_context = std::variant<std::monostate,
-                                              std::experimental::coroutine_handle<>,
+                                              std::coroutine_handle<>,
                                               await_context,
                                               std::shared_ptr<wait_context>,
                                               std::shared_ptr<when_all_state_base>,
@@ -172,17 +172,17 @@ namespace concurrencpp::details {
        public:
         void wait();
 
-        bool await(std::experimental::coroutine_handle<> caller_handle) noexcept;
+        bool await(std::coroutine_handle<> caller_handle) noexcept;
 
-        bool await_via(std::shared_ptr<concurrencpp::executor> executor, std::experimental::coroutine_handle<> caller_handle, bool force_rescheduling);
+        bool await_via(std::shared_ptr<concurrencpp::executor> executor, std::coroutine_handle<> caller_handle, bool force_rescheduling);
 
         void when_all(std::shared_ptr<when_all_state_base> when_all_state) noexcept;
 
-        when_any_status when_any(std::shared_ptr<when_any_state_base> when_any_state, size_t index) noexcept;
+        when_any_status when_any(std::shared_ptr<when_any_state_base> when_any_state, std::size_t index) noexcept;
 
         void try_rewind_consumer() noexcept;
 
-        static void schedule_coroutine(executor& executor, std::experimental::coroutine_handle<> handle);
+        static void schedule_coroutine(executor& executor, std::coroutine_handle<> handle);
         static void schedule_coroutine(await_context& await_ctx);
     };
 
@@ -281,7 +281,7 @@ namespace concurrencpp::details {
             }
 
             const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-            if (wait_ctx->wait_for(static_cast<size_t>(ms + 1))) {
+            if (wait_ctx->wait_for(static_cast<std::size_t>(ms + 1))) {
                 assert_done();
                 return get_result_status();
             }

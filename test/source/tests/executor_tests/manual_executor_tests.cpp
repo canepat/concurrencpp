@@ -60,12 +60,12 @@ void concurrencpp::tests::test_manual_executor_shutdown_method_access() {
     assert_true(executor->shutdown_requested());
 
     assert_throws<concurrencpp::errors::executor_shutdown>([executor] {
-        executor->enqueue(std::experimental::coroutine_handle {});
+        executor->enqueue(std::coroutine_handle {});
     });
 
     assert_throws<concurrencpp::errors::executor_shutdown>([executor] {
-        std::experimental::coroutine_handle<> array[4];
-        std::span<std::experimental::coroutine_handle<>> span = array;
+        std::coroutine_handle<> array[4];
+        std::span<std::coroutine_handle<>> span = array;
         executor->enqueue(span);
     });
 
@@ -88,13 +88,13 @@ void concurrencpp::tests::test_manual_executor_shutdown_method_access() {
 
 void concurrencpp::tests::test_manual_executor_shutdown_coro_raii() {
     object_observer observer;
-    const size_t task_count = 1'024;
+    const std::size_t task_count = 1'024;
     auto executor = std::make_shared<manual_executor>();
 
     std::vector<value_testing_stub> stubs;
     stubs.reserve(task_count);
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         stubs.emplace_back(observer.get_testing_stub(i));
     }
 
@@ -103,7 +103,7 @@ void concurrencpp::tests::test_manual_executor_shutdown_coro_raii() {
     executor->shutdown();
     assert_true(executor->shutdown_requested());
 
-    assert_equal(observer.get_execution_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
     assert_equal(observer.get_destruction_count(), task_count);
 
     for (auto& result : results) {
@@ -114,15 +114,15 @@ void concurrencpp::tests::test_manual_executor_shutdown_coro_raii() {
 }
 
 void concurrencpp::tests::test_manual_executor_shutdown_more_than_once() {
-    const size_t task_count = 64;
+    const std::size_t task_count = 64;
     auto executor = std::make_shared<manual_executor>();
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         executor->post([] {
         });
     }
 
-    for (size_t i = 0; i < 4; i++) {
+    for (std::size_t i = 0; i < 4; i++) {
         executor->shutdown();
     }
 }
@@ -142,23 +142,23 @@ void concurrencpp::tests::test_manual_executor_max_concurrency_level() {
 
 void concurrencpp::tests::test_manual_executor_post_foreign() {
     object_observer observer;
-    const size_t task_count = 1'024;
+    const std::size_t task_count = 1'024;
     auto executor = std::make_shared<concurrencpp::manual_executor>();
 
-    assert_equal(executor->size(), size_t(0));
+    assert_equal(executor->size(), std::size_t(0));
     assert_true(executor->empty());
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         executor->post(observer.get_testing_stub());
         assert_equal(executor->size(), 1 + i);
         assert_false(executor->empty());
     }
 
     // manual executor doesn't execute the tasks automatically, hence manual.
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
-    for (size_t i = 0; i < task_count / 2; i++) {
+    for (std::size_t i = 0; i < task_count / 2; i++) {
         assert_true(executor->loop_once());
         assert_equal(observer.get_execution_count(), i + 1);
     }
@@ -169,14 +169,14 @@ void concurrencpp::tests::test_manual_executor_post_foreign() {
 
 void concurrencpp::tests::test_manual_executor_post_inline() {
     object_observer observer;
-    constexpr size_t task_count = 1'024;
+    constexpr std::size_t task_count = 1'024;
     auto executor = std::make_shared<manual_executor>();
 
-    assert_equal(executor->size(), size_t(0));
+    assert_equal(executor->size(), std::size_t(0));
     assert_true(executor->empty());
 
     executor->post([executor, &observer] {
-        for (size_t i = 0; i < task_count; i++) {
+        for (std::size_t i = 0; i < task_count; i++) {
             executor->post(observer.get_testing_stub());
             assert_equal(executor->size(), 1 + i);
             assert_false(executor->empty());
@@ -185,10 +185,10 @@ void concurrencpp::tests::test_manual_executor_post_inline() {
 
     assert_true(executor->loop_once());
 
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
-    for (size_t i = 0; i < task_count / 2; i++) {
+    for (std::size_t i = 0; i < task_count / 2; i++) {
         assert_true(executor->loop_once());
         assert_equal(observer.get_execution_count(), i + 1);
     }
@@ -205,23 +205,23 @@ void concurrencpp::tests::test_manual_executor_post() {
 
 void concurrencpp::tests::test_manual_executor_submit_foreign() {
     object_observer observer;
-    const size_t task_count = 1'024;
+    const std::size_t task_count = 1'024;
     auto executor = std::make_shared<manual_executor>();
 
-    assert_equal(executor->size(), size_t(0));
+    assert_equal(executor->size(), std::size_t(0));
     assert_true(executor->empty());
 
-    std::vector<result<size_t>> results;
+    std::vector<result<std::size_t>> results;
     results.resize(task_count);
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         results[i] = executor->submit(observer.get_testing_stub(i));
     }
 
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
-    for (size_t i = 0; i < task_count / 2; i++) {
+    for (std::size_t i = 0; i < task_count / 2; i++) {
         assert_true(executor->loop_once());
         assert_equal(observer.get_execution_count(), i + 1);
         assert_equal(results[i].get(), i);
@@ -233,29 +233,29 @@ void concurrencpp::tests::test_manual_executor_submit_foreign() {
 
 void concurrencpp::tests::test_manual_executor_submit_inline() {
     object_observer observer;
-    constexpr size_t task_count = 1'024;
+    constexpr std::size_t task_count = 1'024;
     auto executor = std::make_shared<concurrencpp::manual_executor>();
 
-    assert_equal(executor->size(), size_t(0));
+    assert_equal(executor->size(), std::size_t(0));
     assert_true(executor->empty());
 
     auto results_res = executor->submit([executor, &observer] {
-        std::vector<result<size_t>> results;
+        std::vector<result<std::size_t>> results;
         results.resize(task_count);
-        for (size_t i = 0; i < task_count; i++) {
+        for (std::size_t i = 0; i < task_count; i++) {
             results[i] = executor->submit(observer.get_testing_stub(i));
         }
 
         return results;
     });
 
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
     assert_true(executor->loop_once());
     auto results = results_res.get();
 
-    for (size_t i = 0; i < task_count / 2; i++) {
+    for (std::size_t i = 0; i < task_count / 2; i++) {
         assert_true(executor->loop_once());
         assert_equal(observer.get_execution_count(), i + 1);
         assert_equal(results[i].get(), i);
@@ -272,13 +272,13 @@ void concurrencpp::tests::test_manual_executor_submit() {
 
 void concurrencpp::tests::test_manual_executor_bulk_post_foreign() {
     object_observer observer;
-    const size_t task_count = 1'000;
+    const std::size_t task_count = 1'000;
     auto executor = std::make_shared<manual_executor>();
 
     std::vector<testing_stub> stubs;
     stubs.reserve(task_count);
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         stubs.emplace_back(observer.get_testing_stub());
     }
 
@@ -287,10 +287,10 @@ void concurrencpp::tests::test_manual_executor_bulk_post_foreign() {
     assert_false(executor->empty());
     assert_equal(executor->size(), task_count);
 
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
-    for (size_t i = 0; i < task_count / 2; i++) {
+    for (std::size_t i = 0; i < task_count / 2; i++) {
         assert_true(executor->loop_once());
         assert_equal(observer.get_execution_count(), i + 1);
     }
@@ -301,7 +301,7 @@ void concurrencpp::tests::test_manual_executor_bulk_post_foreign() {
 
 void concurrencpp::tests::test_manual_executor_bulk_post_inline() {
     object_observer observer;
-    constexpr size_t task_count = 1'000;
+    constexpr std::size_t task_count = 1'000;
     auto executor = std::make_shared<manual_executor>();
     executor_shutdowner shutdown(executor);
 
@@ -309,7 +309,7 @@ void concurrencpp::tests::test_manual_executor_bulk_post_inline() {
         std::vector<testing_stub> stubs;
         stubs.reserve(task_count);
 
-        for (size_t i = 0; i < task_count; i++) {
+        for (std::size_t i = 0; i < task_count; i++) {
             stubs.emplace_back(observer.get_testing_stub());
         }
         executor->bulk_post<testing_stub>(stubs);
@@ -317,10 +317,10 @@ void concurrencpp::tests::test_manual_executor_bulk_post_inline() {
 
     assert_true(executor->loop_once());
 
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
-    for (size_t i = 0; i < task_count / 2; i++) {
+    for (std::size_t i = 0; i < task_count / 2; i++) {
         assert_true(executor->loop_once());
         assert_equal(observer.get_execution_count(), i + 1);
     }
@@ -336,14 +336,14 @@ void concurrencpp::tests::test_manual_executor_bulk_post() {
 
 void concurrencpp::tests::test_manual_executor_bulk_submit_foreign() {
     object_observer observer;
-    const size_t task_count = 1'024;
+    const std::size_t task_count = 1'024;
     auto executor = std::make_shared<manual_executor>();
     executor_shutdowner shutdown(executor);
 
     std::vector<value_testing_stub> stubs;
     stubs.reserve(task_count);
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         stubs.emplace_back(observer.get_testing_stub(i));
     }
 
@@ -352,10 +352,10 @@ void concurrencpp::tests::test_manual_executor_bulk_submit_foreign() {
     assert_false(executor->empty());
     assert_equal(executor->size(), task_count);
 
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
-    for (size_t i = 0; i < task_count / 2; i++) {
+    for (std::size_t i = 0; i < task_count / 2; i++) {
         assert_true(executor->loop_once());
         assert_equal(observer.get_execution_count(), i + 1);
     }
@@ -366,7 +366,7 @@ void concurrencpp::tests::test_manual_executor_bulk_submit_foreign() {
 
 void concurrencpp::tests::test_manual_executor_bulk_submit_inline() {
     object_observer observer;
-    constexpr size_t task_count = 1'024;
+    constexpr std::size_t task_count = 1'024;
     auto executor = std::make_shared<manual_executor>();
     executor_shutdowner shutdown(executor);
 
@@ -374,7 +374,7 @@ void concurrencpp::tests::test_manual_executor_bulk_submit_inline() {
         std::vector<value_testing_stub> stubs;
         stubs.reserve(task_count);
 
-        for (size_t i = 0; i < task_count; i++) {
+        for (std::size_t i = 0; i < task_count; i++) {
             stubs.emplace_back(observer.get_testing_stub(i));
         }
 
@@ -383,11 +383,11 @@ void concurrencpp::tests::test_manual_executor_bulk_submit_inline() {
 
     assert_true(executor->loop_once());
 
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
     auto results = results_res.get();
-    for (size_t i = 0; i < task_count / 2; i++) {
+    for (std::size_t i = 0; i < task_count / 2; i++) {
         assert_true(executor->loop_once());
         assert_equal(observer.get_execution_count(), i + 1);
         assert_equal(results[i].get(), i);
@@ -404,28 +404,28 @@ void concurrencpp::tests::test_manual_executor_bulk_submit() {
 
 void concurrencpp::tests::test_manual_executor_loop_once() {
     object_observer observer;
-    const size_t task_count = 1'024;
+    const std::size_t task_count = 1'024;
     auto executor = std::make_shared<concurrencpp::manual_executor>();
     executor_shutdowner shutdown(executor);
 
-    assert_equal(executor->size(), size_t(0));
+    assert_equal(executor->size(), std::size_t(0));
     assert_true(executor->empty());
 
-    for (size_t i = 0; i < 10; i++) {
+    for (std::size_t i = 0; i < 10; i++) {
         assert_false(executor->loop_once());
     }
 
-    std::vector<result<size_t>> results;
+    std::vector<result<std::size_t>> results;
     results.resize(task_count);
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         results[i] = executor->submit(observer.get_testing_stub(i));
     }
 
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         assert_true(executor->loop_once());
         assert_equal(observer.get_execution_count(), i + 1);
         assert_equal(executor->size(), task_count - (i + 1));
@@ -436,10 +436,10 @@ void concurrencpp::tests::test_manual_executor_loop_once() {
 
     const auto& execution_map = observer.get_execution_map();
 
-    assert_equal(execution_map.size(), size_t(1));
+    assert_equal(execution_map.size(), std::size_t(1));
     assert_equal(execution_map.begin()->first, concurrencpp::details::thread::get_current_virtual_id());
 
-    for (size_t i = 0; i < 10; i++) {
+    for (std::size_t i = 0; i < 10; i++) {
         assert_false(executor->loop_once());
     }
 }
@@ -452,7 +452,7 @@ void concurrencpp::tests::test_manual_executor_loop_once_timed() {
 
     // case 1: timeout
     {
-        for (size_t i = 0; i < 10; i++) {
+        for (std::size_t i = 0; i < 10; i++) {
             const auto before = std::chrono::high_resolution_clock::now();
             assert_false(executor->loop_once(std::chrono::milliseconds(waiting_time)));
             const auto after = std::chrono::high_resolution_clock::now();
@@ -469,8 +469,8 @@ void concurrencpp::tests::test_manual_executor_loop_once_timed() {
         const auto after = std::chrono::high_resolution_clock::now();
         const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
         assert_smaller_equal(ms, 5);
-        assert_equal(observer.get_execution_count(), size_t(1));
-        assert_equal(observer.get_destruction_count(), size_t(1));
+        assert_equal(observer.get_execution_count(), std::size_t(1));
+        assert_equal(observer.get_destruction_count(), std::size_t(1));
     }
 
     // case 3: goes to sleep, then woken by an incoming task
@@ -494,30 +494,30 @@ void concurrencpp::tests::test_manual_executor_loop_once_timed() {
 
 void concurrencpp::tests::test_manual_executor_loop() {
     object_observer observer;
-    const size_t task_count = 1'000;
+    const std::size_t task_count = 1'000;
     auto executor = std::make_shared<concurrencpp::manual_executor>();
     executor_shutdowner shutdown(executor);
 
-    assert_equal(executor->size(), size_t(0));
+    assert_equal(executor->size(), std::size_t(0));
     assert_true(executor->empty());
 
-    assert_equal(executor->loop(100), size_t(0));
+    assert_equal(executor->loop(100), std::size_t(0));
 
-    std::vector<result<size_t>> results;
+    std::vector<result<std::size_t>> results;
     results.resize(task_count);
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         results[i] = executor->submit(observer.get_testing_stub(i));
     }
 
-    assert_equal(observer.get_execution_count(), size_t(0));
-    assert_equal(observer.get_destruction_count(), size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
+    assert_equal(observer.get_destruction_count(), std::size_t(0));
 
-    const size_t chunk_size = 150;
+    const std::size_t chunk_size = 150;
     const auto cycles = task_count / chunk_size;
     const auto remained = task_count - (cycles * chunk_size);
 
-    for (size_t i = 0; i < cycles; i++) {
+    for (std::size_t i = 0; i < cycles; i++) {
         const auto executed = executor->loop(chunk_size);
         assert_equal(executed, chunk_size);
 
@@ -535,37 +535,37 @@ void concurrencpp::tests::test_manual_executor_loop() {
     assert_equal(observer.get_destruction_count(), task_count);
 
     assert_true(executor->empty());
-    assert_equal(executor->size(), size_t(0));
+    assert_equal(executor->size(), std::size_t(0));
 
     const auto& execution_map = observer.get_execution_map();
 
-    assert_equal(execution_map.size(), size_t(1));
+    assert_equal(execution_map.size(), std::size_t(1));
     assert_equal(execution_map.begin()->first, concurrencpp::details::thread::get_current_virtual_id());
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         assert_equal(results[i].get(), i);
     }
 }
 
 void concurrencpp::tests::test_manual_executor_clear() {
     object_observer observer;
-    const size_t task_count = 100;
+    const std::size_t task_count = 100;
     auto executor = std::make_shared<concurrencpp::manual_executor>();
     executor_shutdowner shutdown(executor);
 
-    assert_equal(executor->clear(), size_t(0));
+    assert_equal(executor->clear(), std::size_t(0));
 
-    std::vector<result<size_t>> results;
+    std::vector<result<std::size_t>> results;
     results.resize(task_count);
 
-    for (size_t i = 0; i < task_count; i++) {
+    for (std::size_t i = 0; i < task_count; i++) {
         results[i] = executor->submit(observer.get_testing_stub(i));
     }
 
     assert_equal(executor->clear(), task_count);
     assert_true(executor->empty());
-    assert_equal(executor->size(), size_t(0));
-    assert_equal(observer.get_execution_count(), size_t(0));
+    assert_equal(executor->size(), std::size_t(0));
+    assert_equal(observer.get_execution_count(), std::size_t(0));
     assert_equal(observer.get_destruction_count(), task_count);
 
     for (auto& result : results) {
@@ -597,7 +597,7 @@ void concurrencpp::tests::test_manual_executor_wait_for_task_timed() {
     executor_shutdowner shutdown(executor);
     const auto waiting_time = std::chrono::milliseconds(200);
 
-    for (size_t i = 0; i < 10; i++) {
+    for (std::size_t i = 0; i < 10; i++) {
         const auto before = std::chrono::system_clock::now();
         const auto task_found = executor->wait_for_task(waiting_time);
         const auto after = std::chrono::system_clock::now();

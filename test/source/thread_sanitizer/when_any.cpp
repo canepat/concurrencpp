@@ -20,20 +20,20 @@ using namespace concurrencpp;
 struct random_ctx {
     std::random_device rd;
     std::mt19937 mt;
-    std::uniform_int_distribution<size_t> dist;
+    std::uniform_int_distribution<std::size_t> dist;
 
     random_ctx() : mt(rd()), dist(1, 5 * 1000) {}
 
-    size_t operator()() noexcept {
+    std::size_t operator()() noexcept {
         return dist(mt);
     }
 };
 
-std::vector<result<int>> run_loop_once(std::shared_ptr<thread_executor> te, random_ctx& r, size_t count) {
+std::vector<result<int>> run_loop_once(std::shared_ptr<thread_executor> te, random_ctx& r, std::size_t count) {
     std::vector<result<int>> results;
     results.reserve(count);
 
-    for (size_t i = 0; i < count; i++) {
+    for (std::size_t i = 0; i < count; i++) {
         const auto sleeping_time = r();
         results.emplace_back(te->submit([sleeping_time] {
             std::this_thread::sleep_for(std::chrono::milliseconds(sleeping_time));
@@ -82,7 +82,7 @@ concurrencpp::result<void> when_any_tuple_test(std::shared_ptr<concurrencpp::thr
     random_ctx r;
     auto loop = run_loop_once(te, r, 10);
 
-    for (size_t i = 0; i < 256; i++) {
+    for (std::size_t i = 0; i < 256; i++) {
         auto any = co_await when_any(std::move(loop[0]),
                                      std::move(loop[1]),
                                      std::move(loop[2]),
